@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>R‑Donat — Roblox Донат</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f1114; --card:#14171b; --stroke:#2d343d; --text:#eef2f6;
+  --muted:#a6adb7; --accent:#ff7a00; --accent-2:#ff9b3d; --chip:#22272c;
+  --good:#29cc7a; --danger:#ff4d4f; --shadow:0 12px 30px rgba(0,0,0,.4);
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--text);background:var(--bg)}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer}
+.wrap{max-width:1100px;margin:0 auto;padding:14px}
+
+/* Topbar */
+.topbar{position:sticky;top:0;background:rgba(15,17,20,.86);backdrop-filter:blur(6px);border-bottom:1px solid var(--stroke);z-index:50}
+.topbar .inner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px}
+.brand{display:flex;gap:10px;align-items:center}
+.logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#1b1f23,#111314);display:grid;place-items:center;border:1px solid var(--stroke);overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:cover;display:none}
+.logo .fallback{font-weight:800;color:var(--accent)}
+.nav{display:flex;gap:8px;flex-wrap:wrap}
+.tab{padding:9px 12px;border-radius:10px;background:transparent;border:1px solid var(--stroke);font-weight:600}
+.tab.active{background:var(--accent);color:#111;border-color:transparent}
+.actions{display:flex;gap:8px;align-items:center}
+
+/* Banner */
+.banner{margin:14px 0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--stroke);background:linear-gradient(180deg,#111315,#0f1114)}
+.banner img{width:100%;height:180px;object-fit:cover;display:block}
+.banner .overlay{padding:12px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.banner h1{margin:0;font-size:18px}
+.banner p{margin:0;color:var(--muted);font-size:13px}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:960px){.grid{grid-template-columns:1.6fr .9fr}}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:560px){.cards{grid-template-columns:repeat(3,1fr)}}
+.card{background:var(--card);border-radius:12px;border:1px solid var(--stroke);overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);position:relative}
+.thumb{height:120px;background:linear-gradient(180deg,#191d21,#0f1114);display:grid;place-items:center;position:relative}
+.thumb img{width:72px;height:72px;object-fit:contain}
+.badge{position:absolute;left:10px;top:10px;background:var(--chip);padding:6px 8px;border-radius:999px;border:1px solid var(--stroke);font-size:12px}
+.bonus{position:absolute;right:10px;top:10px;background:#274033;color:#bff3d0;padding:6px 8px;border-radius:999px;font-size:12px;border:1px solid #1f3528}
+.body{padding:12px;display:flex;flex-direction:column;gap:8px}
+.title{font-weight:700}
+.price{display:flex;gap:8px;align-items:center}
+.price .now{color:var(--accent);font-weight:800}
+.price .old{color:var(--muted);text-decoration:line-through;font-size:13px}
+.actions{display:flex;gap:8px;margin-top:auto}
+.btn{padding:10px;border-radius:10px;border:1px solid var(--stroke);background:transparent;color:var(--text)}
+.btn.primary{background:var(--accent);color:#111;border:0;font-weight:800}
+
+/* right panel */
+.panel{background:var(--card);border:1px solid var(--stroke);border-radius:12px;padding:12px;position:sticky;top:78px}
+.pay-methods{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.pay{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;border:1px solid var(--stroke);background:transparent}
+.pay.active{border-color:var(--accent);background:rgba(255,122,0,0.08);color:var(--accent)}
+.pay img{width:20px;height:20px;border-radius:6px}
+
+/* sections */
+section{display:none}
+section.active{display:block}
+
+/* chat */
+.chat{background:var(--card);border:1px solid var(--stroke);border-radius:12px;display:flex;flex-direction:column;height:56vh}
+.chat .head{padding:10px;border-bottom:1px solid var(--stroke);display:flex;gap:8px;align-items:center}
+.chat .head img{width:30px;height:30px;border-radius:50%}
+.msgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:80%;padding:10px;border-radius:12px}
+.msg.user{margin-left:auto;background:#232a32;border:1px solid var(--stroke)}
+.msg.support{background:#20252b;border:1px solid var(--stroke)}
+.compose{display:flex;gap:8px;padding:10px;border-top:1px solid var(--stroke)}
+
+/* auth/admin */
+.auth{background:var(--card);border:1px solid var(--stroke);border-radius:12px;padding:12px;display:grid;gap:8px}
+.small{font-size:13px;color:var(--muted)}
+
+/* reviews */
+.reviews{background:var(--card);border:1px solid var(--stroke);border-radius:12px;padding:12px;margin-top:14px}
+.review{border-top:1px solid var(--stroke);padding:10px 0}
+.review:first-child{border-top:0}
+.tag{display:inline-block;background:var(--chip);padding:6px 8px;border-radius:999px;margin-right:6px;border:1px solid var(--stroke);font-size:12px;color:#cbd3de}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:200}
+.modal.open{display:flex}
+.sheet{background:var(--card);border-radius:12px;padding:14px;width:96%;max-width:560px;border:1px solid var(--stroke)}
+.row{display:flex;gap:8px;align-items:center}
+.input, input, textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--stroke);background:#0d1114;color:var(--text)}
+.copy{padding:8px;border-radius:8px;border:1px solid var(--stroke);background:transparent}
+.close-btn{background:transparent;border:0;color:var(--muted)}
+
+/* footer */
+footer{opacity:.8;margin:18px 0;color:var(--muted);text-align:center}
+
+/* misc */
+.kv{font-size:13px;color:var(--muted)}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="inner wrap">
+    <div class="brand">
+      <div class="logo" id="logoBox" title="Логотип">
+        <span class="fallback">R$</span>
+        <img id="logoImg" alt="logo">
+      </div>
+      <div>
+        <strong>R‑Donat</strong>
+        <div class="kv" style="font-size:12px">Маркетплейс доната для Roblox</div>
+      </div>
+    </div>
+
+    <nav class="nav" id="navTop">
+      <button class="tab active" data-open="shop">Магазин</button>
+      <button class="tab" data-open="cabinet">Кабинет</button>
+      <button class="tab" data-open="support">Поддержка</button>
+      <button class="tab" data-open="cart">Корзина</button>
+      <!-- админ кнопка НЕ в шапке -->
+    </nav>
+
+    <div class="actions" id="authArea">
+      <button class="btn" data-open="login" id="btnLogin">Вход</button>
+      <button class="btn primary" data-open="auth">Регистрация</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- banner -->
+  <div class="banner" id="banner">
+    <img id="bannerImg" src="" alt="Баннер">
+    <div class="overlay">
+      <div>
+        <h1 id="bannerTitle">Алмазы Roblox • Моментальная выдача</h1>
+        <p id="bannerDesc">Акции и быстрая служба поддержки. Настроить баннер — в админке.</p>
+      </div>
+      <div class="kv">Серо‑оранжевый стиль • Mobile‑first</div>
+    </div>
+  </div>
+
+  <!-- shop -->
+  <section id="shop" class="active">
+    <div class="grid">
+      <div>
+        <div id="products" class="cards"></div>
+        <div class="reviews" id="reviewsBlock">
+          <h3 style="margin:0 0 8px">Отзывы</h3>
+          <div id="reviewsList"></div>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <div class="kv">Регион</div>
+        <div style="margin:8px 0" class="tag">🇷🇺 Россия</div>
+
+        <h3 style="margin-top:10px">Способы оплаты</h3>
+        <div id="payMethods" class="pay-methods"></div>
+
+        <div style="margin-top:8px" class="kv">Промокод</div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <input id="promoInput" class="input" placeholder="Введите код">
+          <button class="btn" id="applyPromoBtn">Применить</button>
+        </div>
+
+        <div style="margin-top:8px" class="kv">Логин Roblox</div>
+        <input id="buyerLogin" class="input" placeholder="Ваш логин в Roblox">
+
+        <div style="margin-top:12px" class="kv">Итого</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <div><div class="kv">Сумма</div><div style="font-weight:800;font-size:18px" id="totalSum">0 ₽</div></div>
+          <div><div class="kv">Экономия</div><div style="color:#8ddca7" id="totalSave">0 ₽</div></div>
+        </div>
+
+        <button class="btn primary" id="checkoutBtn" style="width:100%;margin-top:12px">Купить</button>
+        <div style="margin-top:8px;font-size:12px;color:var(--muted)">Нажимая кнопку, вы принимаете правила сервиса.</div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- cabinet -->
+  <section id="cabinet">
+    <div id="adminEntry" style="display:none;margin-bottom:12px"></div>
+    <h2>Мои заказы</h2>
+    <div id="ordersList"></div>
+    <div id="noOrders" class="kv">Заказов пока нет.</div>
+  </section>
+
+  <!-- support -->
+  <section id="support">
+    <div class="chat">
+      <div class="head">
+        <img id="supportLogo" src="" alt="S" />
+        <div>
+          <strong>Поддержка</strong><div class="kv">Онлайн 24/7</div>
+        </div>
+        <div style="margin-left:auto" class="kv">Ответы — в админ‑панели</div>
+      </div>
+      <div id="chatMsgs" class="msgs"></div>
+      <div class="compose">
+        <input id="chatInput" class="input" placeholder="Опишите проблему...">
+        <button class="btn primary" id="sendChatBtn">Отправить</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- cart -->
+  <section id="cart">
+    <h2>Корзина</h2>
+    <div id="cartItems"></div>
+    <div id="emptyCart" class="kv">Корзина пуста.</div>
+  </section>
+
+  <!-- registration -->
+  <section id="auth">
+    <div class="auth">
+      <h3>Регистрация</h3>
+      <input id="regEmail" class="input" placeholder="Email">
+      <input id="regLogin" class="input" placeholder="Логин">
+      <input id="regPass" class="input" type="password" placeholder="Пароль">
+      <button class="btn primary" id="regBtn">Создать аккаунт</button>
+      <div class="small">После регистрации вы будете автоматически авторизованы.</div>
+    </div>
+  </section>
+
+  <!-- login -->
+  <section id="login">
+    <div class="auth">
+      <h3>Вход</h3>
+      <input id="logEmail" class="input" placeholder="Email">
+      <input id="logPass" class="input" type="password" placeholder="Пароль">
+      <button class="btn primary" id="logBtn">Войти</button>
+      <div class="small">Демо‑админ: admin@site.test / 12345</div>
+    </div>
+  </section>
+
+  <!-- admin (скрыт; доступ только после входа как админ) -->
+  <section id="admin" class="hidden">
+    <h2>Админ‑панель</h2>
+
+    <div class="auth">
+      <h3>Баннер и логотипы</h3>
+      <input id="adminBannerUrl" class="input" placeholder="URL картинки баннера">
+      <input id="adminBannerText" class="input" placeholder="Текст в баннере">
+      <input id="adminLogoUrl" class="input" placeholder="URL логотипа (иконка)">
+      <input id="adminSupportLogoUrl" class="input" placeholder="URL картинки для поддержки">
+      <button class="btn primary" id="saveBannerBtn">Сохранить</button>
+    </div>
+
+    <div style="height:10px"></div>
+
+    <div class="auth">
+      <h3>Товары</h3>
+      <div id="adminProducts" class="cards"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <input id="pTitle" class="input" placeholder="Название (264 Алмаза)">
+        <input id="pPrice" class="input" type="number" placeholder="Цена">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <input id="pOld" class="input" type="number" placeholder="Старая цена">
+        <input id="pBonus" class="input" placeholder="Бонус (+25)">
+        <input id="pTag" class="input" placeholder="Метка (Хит...)">
+        <input id="pImg" class="input" placeholder="URL картинки товара">
+      </div>
+      <button class="btn primary" id="addProductBtn" style="margin-top:8px">Добавить товар</button>
+    </div>
+
+    <div style="height:10px"></div>
+
+    <div class="auth">
+      <h3>Промокоды</h3>
+      <div id="promoList" class="kv"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input id="promoCode" class="input" placeholder="Код">
+        <input id="promoDisc" class="input" type="number" placeholder="%">
+        <button class="btn primary" id="addPromoBtn">Добавить</button>
+      </div>
+    </div>
+
+    <div style="height:10px"></div>
+
+    <div class="auth">
+      <h3>Отзывы</h3>
+      <div id="adminReviews" class="kv"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input id="revName" class="input" placeholder="Имя">
+        <input id="revAvatar" class="input" placeholder="Avatar URL">
+        <input id="revStars" class="input" type="number" placeholder="Звёзды 1-5" min="1" max="5">
+      </div>
+      <input id="revTags" class="input" placeholder="Теги через запятую">
+      <button class="btn primary" id="addReviewBtn" style="margin-top:8px">Добавить отзыв</button>
+    </div>
+
+    <div style="height:10px"></div>
+
+    <div class="auth">
+      <h3>Чат (ответ от поддержки)</h3>
+      <div class="chat" style="height:280px">
+        <div class="head"><img id="adminSupportLogo" src="" alt="S" /><div><strong>От лица поддержки</strong></div></div>
+        <div id="adminChatMsgs" class="msgs"></div>
+        <div class="compose">
+          <input id="adminChatInput" class="input" placeholder="Ответить клиенту...">
+          <button class="btn primary" id="adminReplyBtn">Отправить</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- modal оплаты -->
+<div id="payModal" class="modal" aria-hidden="true">
+  <div class="sheet">
+    <div style="display:flex;align-items:center;gap:8px">
+      <strong>Оплата — СБП</strong>
+      <button class="close-btn" id="closePayModal" style="margin-left:auto">Закрыть ✖</button>
+    </div>
+
+    <div style="margin-top:10px">
+      <div class="kv">Получатель</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input id="payRecipient" class="input" value="ООО Р‑Донат" readonly>
+        <button class="copy btn" data-copy="#payRecipient">Копировать</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input id="payPhone" class="input" value="+7 (999) 123‑45‑67" readonly>
+        <button class="copy btn" data-copy="#payPhone">Копировать</button>
+      </div>
+    </div>
+
+    <div style="margin-top:10px" class="kv">Логин Roblox (для зачисления)</div>
+    <input id="payLogin" class="input" placeholder="Логин Roblox">
+
+    <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+      <input type="checkbox" id="payConfirm"> <label for="payConfirm" class="kv">Я указал верный логин/ID</label>
+    </div>
+
+    <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+      <div><div class="kv">К оплате</div><div style="font-weight:800;font-size:18px" id="toPay">0 ₽</div></div>
+      <button class="btn primary" id="confirmPayBtn">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
+<footer class="wrap">© 2025 R‑Donat • Demo UI — хранение в localStorage</footer>
+
+<script>
+/* ============================
+   Utils & Storage
+   ============================ */
+const LS = {
+  get(k,d){ try{ const v = localStorage.getItem(k); return v?JSON.parse(v):d }catch(e){ return d } },
+  set(k,v){ localStorage.setItem(k, JSON.stringify(v)) }
+};
+
+const ADMIN_EMAIL = 'admin@site.test';
+const ADMIN_PASS  = '12345';
+
+/* ============================
+   Default data
+   ============================ */
+const defaults = {
+  products: [
+    {id:1,title:'8 Алмазов',price:19,old:19,bonus:'+1',tag:'',img:'https://img.icons8.com/fluency/96/diamond.png'},
+    {id:2,title:'35 Алмазов',price:73,old:73,bonus:'+3',tag:'',img:'https://img.icons8.com/fluency/96/diamond.png'},
+    {id:3,title:'88 Алмазов',price:176,old:177,bonus:'+8',tag:'',img:'https://img.icons8.com/fluency/96/diamond.png'},
+    {id:4,title:'132 Алмаза',price:262,old:264,bonus:'+12',tag:'',img:'https://img.icons8.com/fluency/96/diamond.png'},
+    {id:5,title:'264 Алмаза',price:524,old:529,bonus:'+25',tag:'Выбор',img:'https://img.icons8.com/fluency/96/diamond.png'}
+  ],
+  methods: [
+    {name:'СБП',icon:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRxQqXGabW6kI-3FnIOENUwjWXqcKEowfrDA&s',active:true},
+    {name:'Картой',icon:'https://img.icons8.com/ios-filled/50/credit-card.png',active:false}
+  ],
+  promos: [{code:'SALE5',discount:5}],
+  reviews: [
+    {name:'Kek Efn',avatar:'https://i.pravatar.cc/36?img=12',stars:5,tags:['Низкая комиссия','Промокод','Скорость']},
+    {name:'Denis Bykov',avatar:'https://i.pravatar.cc/36?img=32',stars:4,tags:['Скорость','Надежность']}
+  ],
+  chat: [{from:'support',text:'Здравствуйте! Опишите проблему — ответим.' ,time:Date.now()}],
+  bannerImg: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1600&auto=format&fit=crop',
+  bannerText: 'Акции каждый день. Мгновенная выдача после оплаты.',
+  supportLogo: 'https://i.pravatar.cc/60?img=5',
+  logoUrl: ''
+};
+
+/* Ensure admin user exists */
+(function ensureAdminUser(){
+  const users = LS.get('users', []);
+  const idx = users.findIndex(u=>u.email===ADMIN_EMAIL);
+  if(idx === -1){
+    users.push({email: ADMIN_EMAIL, login:'Admin', pass: ADMIN_PASS, isAdmin:true});
+    LS.set('users', users);
+  } else {
+    users[idx].isAdmin = true; users[idx].pass = ADMIN_PASS;
+    LS.set('users', users);
+  }
+})();
+
+/* ============================
+   App State (persisted)
+   ============================ */
+const state = {
+  products: LS.get('products', defaults.products),
+  methods:  LS.get('methods', defaults.methods),
+  promos:   LS.get('promos', defaults.promos),
+  reviews:  LS.get('reviews', defaults.reviews),
+  chat:     LS.get('chat', defaults.chat),
+  bannerImg: LS.get('bannerImg', defaults.bannerImg),
+  bannerText: LS.get('bannerText', defaults.bannerText),
+  supportLogo: LS.get('supportLogo', defaults.supportLogo),
+  logoUrl: LS.get('logoUrl', defaults.logoUrl),
+  users: LS.get('users', LS.get('users', [])),
+  cart: LS.get('cart', []),
+  orders: LS.get('orders', []),
+  currentUser: LS.get('currentUser', null),
+};
+
+/* Save helper */
+function commit(){
+  LS.set('products', state.products);
+  LS.set('methods', state.methods);
+  LS.set('promos', state.promos);
+  LS.set('reviews', state.reviews);
+  LS.set('chat', state.chat);
+  LS.set('bannerImg', state.bannerImg);
+  LS.set('bannerText', state.bannerText);
+  LS.set('supportLogo', state.supportLogo);
+  LS.set('logoUrl', state.logoUrl);
+  LS.set('users', state.users);
+  LS.set('cart', state.cart);
+  LS.set('orders', state.orders);
+  LS.set('currentUser', state.currentUser);
+}
+
+/* ============================
+   Utilities
+   ============================ */
+function $(s){ return document.querySelector(s) }
+function $all(s){ return Array.from(document.querySelectorAll(s)) }
+function money(n){ return Number(n||0).toLocaleString('ru-RU') + ' ₽' }
+function now(){ return new Date().toLocaleDateString('ru-RU') }
+
+/* ============================
+   Init UI from state
+   ============================ */
+function applyBranding(){
+  $('#bannerImg').src = state.bannerImg || defaults.bannerImg;
+  $('#bannerDesc').textContent = state.bannerText || defaults.bannerText;
+  $('#supportLogo').src = state.supportLogo || defaults.supportLogo;
+  $('#adminSupportLogo').src = state.supportLogo || defaults.supportLogo;
+  if(state.logoUrl){
+    $('#logoImg').src = state.logoUrl; $('#logoImg').style.display='block'; $('#logoBox .fallback').style.display='none';
+  } else {
+    $('#logoImg').style.display='none'; $('#logoBox .fallback').style.display='block';
+  }
+}
+applyBranding();
+
+/* ============================
+   Render functions
+   ============================ */
+function renderProducts(){
+  const out = state.products.map(p=>{
+    return `
+      <div class="card" data-id="${p.id}">
+        <div class="thumb">
+          <div class="badge">${p.tag || 'Алмазы'}</div>
+          <div class="bonus">Бонус ${p.bonus || ''}</div>
+          <img src="${p.img || 'https://img.icons8.com/fluency/96/diamond.png'}" alt="">
+        </div>
+        <div class="body">
+          <div class="title">${p.title}</div>
+          <div class="price"><div class="now">${money(p.price)}</div> <div class="old">${money(p.old)}</div></div>
+          <div class="actions">
+            <button class="btn" data-add="${p.id}">В корзину</button>
+            <button class="btn primary" data-buy="${p.id}">Купить</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  $('#products').innerHTML = out;
+
+  // admin products list (for management): include delete button on each card
+  const adminOut = state.products.map(p=>{
+    return `
+      <div class="card" data-id="${p.id}">
+        <div class="thumb">
+          <div class="badge">${p.tag || 'Алмазы'}</div>
+          <img src="${p.img || 'https://img.icons8.com/fluency/96/diamond.png'}" alt="">
+        </div>
+        <div class="body">
+          <div class="title">${p.title}</div>
+          <div class="price"><div class="now">${money(p.price)}</div> <div class="old">${money(p.old)}</div></div>
+          <div style="display:flex;gap:8px;margin-top:auto">
+            <button class="btn" data-edit="${p.id}">Редактировать</button>
+            <button class="btn" data-del="${p.id}">Удалить</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  $('#adminProducts').innerHTML = adminOut;
+}
+
+function renderMethods(){
+  $('#payMethods').innerHTML = state.methods.map((m,i)=>`<button class="pay ${m.active? 'active':''}" data-midx="${i}"><img src="${m.icon}" alt=""><span>${m.name}</span></button>`).join('');
+  $('#methodList').innerHTML = state.methods.map((m,i)=>`<div style="display:inline-block;margin:6px"><span class="tag">${m.name}</span> <a data-rm="${i}" style="color:var(--muted);margin-left:6px">✖</a></div>`).join('');
+}
+
+function renderPromos(){
+  $('#promoList').innerHTML = state.promos.map((p,i)=>`<div style="display:inline-block;margin:6px"><span class="tag">${p.code} −${p.discount}%</span> <a data-delpromo="${i}" style="color:var(--muted);margin-left:6px">✖</a></div>`).join('') || '<div class="kv">Промокодов нет</div>';
+}
+
+function renderReviews(){
+  $('#reviewsList').innerHTML = state.reviews.map(r=>{
+    return `<div class="review">
+      <div style="display:flex;gap:10px;align-items:center">
+        <img src="${r.avatar||'https://i.pravatar.cc/36'}" style="width:36px;height:36px;border-radius:50%">
+        <div><strong>${r.name}</strong><div class="kv">${now()}</div><div style="color:#ffcc66">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div></div>
+      </div>
+      <div style="margin-top:8px">${(r.tags||[]).map(t=>`<span class="tag">${t}</span>`).join(' ')}</div>
+    </div>`;
+  }).join('');
+  $('#adminReviews').innerHTML = state.reviews.map((r,i)=>`<span style="display:inline-block;margin:6px" class="tag">${r.name} (${r.stars}) <a data-delrev="${i}" style="color:var(--muted);margin-left:6px">✖</a></span>`).join('');
+}
+
+function renderChat(){
+  $('#chatMsgs').innerHTML = state.chat.map(m=>`<div class="msg ${m.from==='support' ? 'support':'user'}">${m.text}</div>`).join('');
+  $('#adminChatMsgs').innerHTML = state.chat.map(m=>`<div class="msg ${m.from==='support' ? 'support':'user'}">${m.text}</div>`).join('');
+  // scroll to bottom
+  setTimeout(()=>{ const cm = $('#chatMsgs'); if(cm) cm.scrollTop = cm.scrollHeight; const am = $('#adminChatMsgs'); if(am) am.scrollTop = am.scrollHeight; },50);
+}
+
+function renderCart(){
+  const out = state.cart.map((c,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border:1px solid var(--stroke);border-radius:10px;margin-bottom:8px">
+    <div><strong>${c.title}</strong><div class="kv">${money(c.price)}</div></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn" data-rm="${i}">Удалить</button>
+    </div>
+  </div>`).join('');
+  $('#cartItems').innerHTML = out;
+  $('#emptyCart').style.display = state.cart.length ? 'none' : 'block';
+  updateTotals();
+}
+
+function renderOrders(){
+  $('#ordersList').innerHTML = state.orders.map(o=>`<div style="padding:10px;border:1px solid var(--stroke);border-radius:10px;margin-bottom:8px"><div><strong>${o.title}</strong></div><div class="kv">№${o.id} • ${o.date} • ${money(o.sum)}</div></div>`).join('');
+  $('#noOrders').style.display = state.orders.length ? 'none' : 'block';
+}
+
+function updateTotals(){
+  const sum = state.cart.reduce((a,c)=>a+c.price,0);
+  const save = state.cart.reduce((a,c)=>a + Math.max(0,(c.old||c.price)-c.price),0);
+  $('#totalSum').textContent = money(sum);
+  $('#totalSave').textContent = money(save);
+}
+
+/* ============================
+   Initial render
+   ============================ */
+renderProducts();
+renderMethods();
+renderPromos();
+renderReviews();
+renderChat();
+renderCart();
+renderOrders();
+applyBranding();
+updateAuthUI();
+
+/* ============================
+   Interaction handlers
+   ============================ */
+
+/* Tab navigation */
+$all('[data-open]').forEach(btn=>{
+  btn.addEventListener('click', ()=> {
+    const id = btn.getAttribute('data-open');
+    openSection(id);
+  });
+});
+$all('.tab').forEach(t=>t.addEventListener('click', ()=> {
+  $all('.tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+}));
+
+function openSection(id){
+  // admin guard: admin section is visible only if current user is admin
+  if(id === 'admin' && !isAdmin()) id = 'shop';
+  $all('section').forEach(s=>s.classList.remove('active'));
+  const sec = document.getElementById(id);
+  if(sec){
+    sec.classList.add('active');
+    // set active tab highlight based on mapping (shop,cabinet,support,cart)
+    $all('.tab').forEach(x => x.classList.toggle('active', x.dataset.open === id));
+  }
+}
+
+/* Add to cart */
+document.addEventListener('click', (e)=>{
+  const add = e.target.closest('[data-add]');
+  if(add){
+    const id = +add.getAttribute('data-add');
+    const prod = state.products.find(p=>p.id===id);
+    if(prod){
+      state.cart.push(prod);
+      commit();
+      renderCart();
+      alert('Товар добавлен в корзину');
+    }
+  }
+});
+
+/* Remove from cart */
+document.addEventListener('click',(e)=>{
+  const rm = e.target.closest('[data-rm]');
+  if(rm){
+    const idx = +rm.getAttribute('data-rm');
+    if(!isNaN(idx)){
+      state.cart.splice(idx,1);
+      commit(); renderCart();
+    }
+  }
+});
+
+/* Direct buy (open modal) */
+document.addEventListener('click',(e)=>{
+  const buy = e.target.closest('[data-buy]');
+  if(buy){
+    const id = +buy.getAttribute('data-buy');
+    const p = state.products.find(x=>x.id===id);
+    if(p){
+      state.cart = [p];
+      commit();
+      renderCart();
+      openPayModal();
+    }
+  }
+});
+
+/* Checkout button (open modal) */
+$('#checkoutBtn').addEventListener('click', ()=>{
+  if(!state.cart.length) return alert('Корзина пустая');
+  openPayModal();
+});
+
+/* Modal open/close and confirm */
+function openPayModal(){
+  updateTotals();
+  $('#toPay').textContent = money(state.cart.reduce((a,c)=>a+c.price,0));
+  $('#payModal').classList.add('open');
+  $('#payModal').style.display = 'flex';
+}
+function closePayModal(){
+  $('#payModal').classList.remove('open');
+  $('#payModal').style.display = 'none';
+}
+$('#closePayModal').addEventListener('click', closePayModal);
+$('#payModal').addEventListener('click', (e)=>{ if(e.target === $('#payModal')) closePayModal() });
+document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closePayModal() });
+
+$('#confirmPayBtn').addEventListener('click', ()=>{
+  const ok = $('#payConfirm') || document.getElementById('payConfirm');
+  if(ok && !ok.checked) return alert('Подтвердите, что логин указан верно');
+  const login = $('#payLogin').value.trim() || $('#buyerLogin').value.trim();
+  if(!login) return alert('Укажите логин Roblox');
+  const sum = state.cart.reduce((a,c)=>a+c.price,0);
+  const title = state.cart.map(c=>c.title).join(' + ');
+  const order = { id: Math.floor(Math.random()*1e9), title, sum, date: now(), login };
+  state.orders.unshift(order);
+  state.cart = [];
+  commit();
+  renderCart(); renderOrders();
+  closePayModal();
+  alert('Заказ создан. После оплаты поддержка зачислит средства.');
+});
+
+/* Copy buttons */
+document.addEventListener('click',(e)=>{
+  const copyBtn = e.target.closest('[data-copy]');
+  if(copyBtn){
+    const sel = copyBtn.getAttribute('data-copy');
+    const el = document.querySelector(sel);
+    if(el){
+      const val = el.value || el.textContent || el.innerText;
+      navigator.clipboard.writeText(val).then(()=>{ const prev = copyBtn.textContent; copyBtn.textContent = 'Скопировано'; setTimeout(()=>copyBtn.textContent = prev, 1000); });
+    }
+  }
+});
+
+/* Payment method select */
+document.addEventListener('click', (e)=>{
+  const pay = e.target.closest('[data-midx]');
+  if(pay){
+    const idx = +pay.getAttribute('data-midx');
+    state.methods.forEach((m,i)=>m.active = i===idx);
+    commit(); renderMethods();
+  }
+});
+
+/* Chat send (user) */
+$('#sendChatBtn').addEventListener('click', ()=>{
+  const txt = $('#chatInput').value.trim();
+  if(!txt) return;
+  state.chat.push({from:'user', text: txt, time: Date.now()});
+  $('#chatInput').value = '';
+  commit(); renderChat();
+});
+
+/* Admin reply to chat */
+$('#adminReplyBtn').addEventListener('click', ()=>{
+  const txt = $('#adminChatInput').value.trim();
+  if(!txt) return;
+  state.chat.push({from:'support', text: txt, time: Date.now()});
+  $('#adminChatInput').value = '';
+  commit(); renderChat();
+});
+
+/* ============================
+   Auth: Register / Login / UI
+   ============================ */
+function isAdmin(){ return !!(state.currentUser && state.currentUser.isAdmin) }
+
+function updateAuthUI(){
+  if(state.currentUser){
+    $('#authArea').innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div class="kv">👤 ${state.currentUser.login}</div><button class="btn" id="logoutBtn">Выйти</button></div>`;
+    // show admin entry button in cabinet if admin
+    if(isAdmin()){
+      $('#adminEntry').style.display = 'block';
+      $('#adminEntry').innerHTML = `<button class="btn primary" id="openAdminBtn">Открыть админ‑панель</button>`;
+      // show admin section in DOM
+      $('#admin').classList.remove('hidden');
+    } else {
+      $('#adminEntry').style.display = 'none';
+      $('#admin').classList.add('hidden');
+    }
+  } else {
+    $('#authArea').innerHTML = `<button class="btn" data-open="login" id="btnLogin2">Вход</button><button class="btn primary" data-open="auth">Регистрация</button>`;
+    $('#adminEntry').style.display = 'none';
+    $('#admin').classList.add('hidden');
+  }
+}
+updateAuthUI();
+
+/* Register */
+$('#regBtn').addEventListener('click', ()=>{
+  const email = $('#regEmail').value.trim();
+  const login = $('#regLogin').value.trim();
+  const pass  = $('#regPass').value;
+  if(!email || !login || !pass) return alert('Заполните все поля');
+  const users = state.users || [];
+  if(users.find(u=>u.email === email)) return alert('Пользователь с таким email уже есть');
+  const newUser = { email, login, pass, isAdmin: false };
+  users.push(newUser); state.users = users; state.currentUser = newUser; commit(); updateAuthUI(); alert('Аккаунт создан и вы авторизованы'); openSection('shop');
+});
+
+/* Login */
+$('#logBtn').addEventListener('click', ()=>{
+  // ensure admin is present (just in case)
+  const users = state.users || [];
+  if(!users.find(u=>u.email === ADMIN_EMAIL)){
+    users.push({email:ADMIN_EMAIL,login:'Admin',pass:ADMIN_PASS,isAdmin:true});
+    state.users = users; commit();
+  }
+  const email = $('#logEmail').value.trim();
+  const pass  = $('#logPass').value;
+  const u = (state.users || []).find(x=>x.email===email && x.pass===pass);
+  if(!u) return alert('Неверные данные');
+  state.currentUser = u; commit(); updateAuthUI(); alert('Вход выполнен'); openSection('shop');
+});
+
+/* logout and open admin */
+document.addEventListener('click',(e)=>{
+  if(e.target.id === 'logoutBtn'){ state.currentUser = null; commit(); updateAuthUI(); openSection('shop'); }
+  if(e.target.id === 'openAdminBtn'){ if(isAdmin()) openSection('admin'); else alert('Недостаточно прав'); }
+});
+
+/* ============================
+   Admin actions (visible only after auth)
+   ============================ */
+
+/* Save banner/logo */
+$('#saveBannerBtn').addEventListener('click', ()=>{
+  const bUrl = $('#adminBannerUrl').value.trim();
+  const bText = $('#adminBannerText').value.trim();
+  const logo = $('#adminLogoUrl').value.trim();
+  const sLogo = $('#adminSupportLogoUrl').value.trim();
+  if(bUrl){ state.bannerImg = bUrl; }
+  if(bText){ state.bannerText = bText; }
+  if(logo !== undefined){ state.logoUrl = logo; }
+  if(sLogo){ state.supportLogo = sLogo; }
+  commit(); applyBranding();
+  alert('Сохранено');
+});
+
+/* Add product */
+$('#addProductBtn').addEventListener('click', ()=>{
+  const title = $('#pTitle').value.trim();
+  const price = Number($('#pPrice').value);
+  if(!title || !price) return alert('Заполните название и цену');
+  const old = Number($('#pOld').value) || price;
+  const bonus = $('#pBonus').value.trim() || '';
+  const tag = $('#pTag').value.trim() || '';
+  const img = $('#pImg').value.trim() || 'https://img.icons8.com/fluency/96/diamond.png';
+  const id = Date.now();
+  state.products.push({id,title,price,old,bonus,tag,img});
+  commit(); renderProducts();
+  $('#pTitle').value=''; $('#pPrice').value=''; $('#pOld').value=''; $('#pBonus').value=''; $('#pTag').value=''; $('#pImg').value='';
+});
+
+/* Admin product delete/edit */
+document.addEventListener('click',(e)=>{
+  const del = e.target.closest('[data-del]');
+  if(del){
+    const id = +del.getAttribute('data-del');
+    const idx = state.products.findIndex(p=>p.id===id);
+    if(idx>-1){ if(!confirm('Удалить товар?')) return; state.products.splice(idx,1); commit(); renderProducts(); }
+  }
+  const edit = e.target.closest('[data-edit]');
+  if(edit){
+    const id = +edit.getAttribute('data-edit');
+    const p = state.products.find(x=>x.id===id);
+    if(!p) return;
+    // simple prompt-based edit (for demo)
+    const title = prompt('Название товара:', p.title);
+    const price = prompt('Цена (₽):', p.price);
+    const old = prompt('Старая цена (₽):', p.old);
+    const img  = prompt('URL картинки:', p.img);
+    if(title) p.title = title;
+    if(price) p.price = Number(price);
+    if(old) p.old = Number(old);
+    if(img) p.img = img;
+    commit(); renderProducts();
+  }
+});
+
+/* Promos */
+$('#addPromoBtn').addEventListener('click', ()=>{
+  const code = $('#promoCode').value.trim().toUpperCase();
+  const disc = Number($('#promoDisc').value);
+  if(!code || !disc) return alert('Код и процент обязательны');
+  state.promos.push({code,discount:disc});
+  commit(); renderPromos(); $('#promoCode').value=''; $('#promoDisc').value='';
+});
+document.addEventListener('click',(e)=>{
+  const del = e.target.closest('[data-delpromo]');
+  if(del){
+    const i = +del.getAttribute('data-delpromo');
+    if(!isNaN(i)){ state.promos.splice(i,1); commit(); renderPromos(); }
+  }
+});
+$('#applyPromoBtn').addEventListener('click', ()=>{
+  const code = $('#promoInput').value.trim().toUpperCase();
+  if(!code) return alert('Введите код');
+  const promo = state.promos.find(p=>p.code===code);
+  if(!promo) return alert('Промокод не найден');
+  state.cart = state.cart.map(c => ({...c, price: Math.max(1, Math.round(c.price * (100 - promo.discount) / 100))}));
+  commit(); renderCart();
+  alert('Промокод применён');
+});
+
+/* Reviews add/remove */
+$('#addReviewBtn').addEventListener('click', ()=>{
+  const name = $('#revName').value.trim();
+  const avatar = $('#revAvatar').value.trim() || 'https://i.pravatar.cc/36';
+  const stars = Math.max(1, Math.min(5, Number($('#revStars').value) || 5));
+  const tags = ($('#revTags').value || '').split(',').map(s=>s.trim()).filter(Boolean);
+  if(!name) return alert('Имя обязательно');
+  state.reviews.push({name,avatar,stars,tags});
+  commit(); renderReviews();
+  $('#revName').value=''; $('#revAvatar').value=''; $('#revStars').value=''; $('#revTags').value='';
+});
+document.addEventListener('click',(e)=>{
+  const del = e.target.closest('[data-delrev]');
+  if(del){
+    const i = +del.getAttribute('data-delrev');
+    if(!isNaN(i)){ state.reviews.splice(i,1); commit(); renderReviews(); }
+  }
+});
+
+/* Admin can change payment methods */
+$('#addPromoBtn'); // placeholder so script lints okay
+$('#methodList'); // placeholder
+
+/* Admin reply button already bound above */
+
+/* ============================
+   Final housekeeping
+   ============================ */
+function updateAuthUI(){ /* already defined earlier, reassign to update UI on load */ }
+updateAuthUI();
+applyBranding();
+renderProducts(); renderMethods(); renderPromos(); renderReviews(); renderChat(); renderCart(); renderOrders();
+
+/* Make sure admin section visibility consistent on load */
+if(isAdmin()) { document.getElementById('admin').classList.remove('hidden'); }
+
+commit(); // persist initial state
+</script>
+</body>
+</html>
